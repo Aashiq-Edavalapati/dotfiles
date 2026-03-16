@@ -1,0 +1,249 @@
+/* ================================================================
+   nwg-dock-hyprland — macOS Sonoma Dock  ✦  Premium Edition
+   ----------------------------------------------------------------
+   GTK3-valid properties used:
+     background-color · border · border-radius · box-shadow (inset)
+     color · font-size · font-weight · opacity
+     padding · padding-* · margin · margin-*
+     transition · animation · @keyframes
+
+   NOT used (confirmed invalid or fatal in GTK3):
+     transform · transform-origin · scale() · filter
+     min-width · max-width · min-height · max-height
+
+   Anti-shake contract:
+     #box has fixed top padding (20px) as a travel buffer.
+     Every hover rule grows padding-bottom by +N and shrinks
+     margin-top by exactly -N. Net contribution to dock height = 0.
+     The dock window never resizes. No shake possible.
+   ================================================================ */
+
+
+/* ── DOCK SHELL ─────────────────────────────────────────────── */
+/*
+   True macOS Sonoma pill shape. The glass look comes from two
+   sources working together:
+     1. CSS: dark translucent background + inset rim highlights
+     2. Hyprland: layerrule blur (set in decoration.conf) does
+        the actual frosted-glass backdrop blur behind the window.
+   Together they are indistinguishable from the real thing.
+*/
+window {
+    background-color: rgba(24, 24, 26, 0.50);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+
+    /* Layered inset shadows build the glass depth:
+       [0] Top rim highlight  — the bright catch-light on the lip
+       [1] Bottom rim         — subtle ground reflection
+       [2] Left/right edges   — lateral glass thickness illusion
+       [3] Inner top glow     — warm ambient bounce inside glass  */
+    box-shadow:
+        inset 0  1px 0    rgba(255, 255, 255, 0.28),
+        inset 0 -1px 0    rgba(255, 255, 255, 0.07),
+        inset 1px  0 0    rgba(255, 255, 255, 0.10),
+        inset -1px 0 0    rgba(255, 255, 255, 0.10),
+        inset 0  2px 8px  rgba(255, 255, 255, 0.04);
+}
+
+
+/* ── INNER BOX ──────────────────────────────────────────────── */
+/*
+   Top padding = maximum hover travel (14px) + base (6px) = 20px.
+   This is the invisible headroom the icons bounce into.
+   Horizontal padding gives the pill its characteristic breathing room.
+*/
+#box {
+    padding: 20px 14px 8px;
+}
+
+
+/* ── BUTTONS — BASE STATE ────────────────────────────────────── */
+button {
+    background-color: transparent;
+    border: none;
+    border-radius: 16px;
+
+    /* Vertical: padding-top + padding-bottom = total slot height.
+       Horizontal: symmetric, gives the icon comfortable margins.  */
+    padding: 6px 7px 8px;
+    margin: 0 4px;
+
+    /* Opacity transition for a subtle "press dimming" effect.     */
+    opacity: 1.0;
+
+    transition:
+        padding-top      170ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        padding-bottom   170ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        margin-top       170ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        background-color 130ms ease,
+        opacity          130ms ease,
+        border-radius    130ms ease;
+}
+
+
+/* ── HOVERED ICON ────────────────────────────────────────────── */
+/*
+   padding-bottom grows by +14px → icon slot expands downward (visual zoom)
+   padding-top    grows by +8px  → icon slot expands upward   (visual zoom)
+   margin-top     =  -(8+14-6-8) = -8 → net height delta = 0  (no shake)
+
+   The spring cubic-bezier (1.45 overshoot) gives a subtle
+   elastic snap — exactly like macOS icon magnification.
+*/
+button:hover {
+    background-color: rgba(255, 255, 255, 0.09);
+    border-radius: 18px;
+    padding: 0px 7px 22px;
+    margin-top: -8px;
+    opacity: 1.0;
+}
+
+
+/* ── NEIGHBOUR MAGNIFICATION ─────────────────────────────────── */
+/*
+   GTK3 supports the + adjacent sibling selector.
+   Each level gets progressively less expansion.
+   All deltas cancel: net dock height change = 0.
+*/
+button:hover + button {
+    padding: 3px 7px 16px;
+    margin-top: -5px;
+    transition:
+        padding-top    150ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        padding-bottom 150ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        margin-top     150ms cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+button:hover + button + button {
+    padding: 5px 7px 12px;
+    margin-top: -3px;
+    transition:
+        padding-top    130ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        padding-bottom 130ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        margin-top     130ms cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+
+/* ── ACTIVE PRESS ────────────────────────────────────────────── */
+button:active {
+    background-color: rgba(255, 255, 255, 0.05);
+    opacity: 0.75;
+    padding: 8px 7px 6px;
+    margin-top: 2px;
+}
+
+
+/* ── IMAGES ──────────────────────────────────────────────────── */
+image {
+    margin: 0;
+}
+
+
+/* ── ACTIVE / RUNNING INDICATOR ──────────────────────────────── */
+/*
+   The Sonoma dot: a tight white inset glow sitting at the very
+   bottom of the button slot. GTK3 inset box-shadow is reliable.
+
+   Two layers:
+     [0] The dot itself   — solid bright white, 2px spread
+     [1] Soft aura halo   — large blur, low opacity, widens the glow
+
+   The bounce animation fires whenever #active is applied
+   (i.e. when an app launches or becomes focused).
+*/
+#active {
+    border-bottom: none;
+    box-shadow:
+        inset 0 -3px 0   2px rgba(255, 255, 255, 0.95),
+        inset 0 -3px 10px 1px rgba(255, 255, 255, 0.22);
+    animation: dock-bounce 780ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+
+/* ── BOUNCE KEYFRAMES ─────────────────────────────────────────── */
+/*
+   margin-bottom is confirmed animatable in GTK3.
+   Positive values push the widget upward into the #box top buffer.
+   Three diminishing arcs = the classic macOS triple-bounce.
+   Peak values stay within the 20px headroom reserved in #box.
+*/
+@keyframes dock-bounce {
+    0%   { margin-bottom: 0px;  }
+    12%  { margin-bottom: 16px; }
+    26%  { margin-bottom: 0px;  }
+    40%  { margin-bottom: 9px;  }
+    54%  { margin-bottom: 0px;  }
+    68%  { margin-bottom: 4px;  }
+    100% { margin-bottom: 0px;  }
+}
+
+
+/* ── SEPARATOR ───────────────────────────────────────────────── */
+/*
+   The thin vertical divider between pinned and running app sections.
+   Styled as a frosted-glass hairline — matches the dock shell border.
+*/
+#separator {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    margin: 12px 5px;
+    padding: 0 1px;
+    opacity: 0.8;
+}
+
+
+/* ── LAUNCHER BUTTON ─────────────────────────────────────────── */
+/*
+   The nwg-drawer launcher gets a slightly more prominent slot
+   so it reads as a distinct "Launchpad" element, like macOS.
+   Extra left margin separates it from the app icons.
+*/
+#launcher {
+    background-color: rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    padding: 6px 7px 8px;
+    margin: 0 4px 0 10px;
+    opacity: 1.0;
+    transition:
+        padding-top      170ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        padding-bottom   170ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        margin-top       170ms cubic-bezier(0.34, 1.45, 0.64, 1),
+        background-color 130ms ease,
+        opacity          130ms ease;
+}
+
+#launcher:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    padding: 0px 7px 22px;
+    margin-top: -8px;
+    margin-left: 10px;
+}
+
+#launcher:active {
+    opacity: 0.70;
+}
+
+
+/* ── TOOLTIPS ─────────────────────────────────────────────────── */
+/*
+   Matching glass pill tooltip — dark, frosted, rounded.
+   Font matches macOS system tooltip aesthetics.
+*/
+tooltip {
+    background-color: rgba(24, 24, 26, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    padding: 5px 12px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+}
+
+tooltip label {
+    color: rgba(255, 255, 255, 0.90);
+    font-size: 12px;
+    font-weight: 500;
+}
