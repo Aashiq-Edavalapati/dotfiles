@@ -1,0 +1,39 @@
+# Caches
+Cache/
+Code Cache/
+GPUCache/
+logs/
+blob_storage/
+
+# Electron apps
+Code/
+Notion/
+Docker Desktop/
+
+# Browsers
+mozilla/
+
+# Office
+libreoffice/
+
+# Telemetry
+go/
+
+# Audio
+pulse/
+
+# Runtime files
+*.lock
+*.log
+*.db
+*.journal
+*.wal
+
+# Temp sockets
+Singleton*
+
+# Package files
+*.pkg.tar.zst
+
+# Agent
+cagent/
