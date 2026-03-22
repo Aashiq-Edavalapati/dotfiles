@@ -28,9 +28,9 @@
       }
     },
     "transparency": {
-      "enabled": false,
-      "base": 0.9005014868530885,
-      "layers": 0.4
+      "enabled": true,
+      "base": 0.8451259912353924,
+      "layers": 0.4970262938230384
     }
   },
   "general": {
@@ -105,18 +105,18 @@
       "position": "bottom-right",
       "invertColors": false,
       "background": {
-        "enabled": false,
+        "enabled": true,
         "opacity": 0.7,
         "blur": true
       },
       "shadow": {
         "enabled": true,
-        "opacity": 0.7,
-        "blur": 0.4
+        "opacity": 0.07144065884476535,
+        "blur": 1
       }
     },
     "visualiser": {
-      "enabled": false,
+      "enabled": true,
       "autoHide": true,
       "blur": false,
       "rounding": 1,
@@ -140,7 +140,7 @@
     "workspaces": {
       "shown": 5,
       "activeIndicator": true,
-      "occupiedBg": false,
+      "occupiedBg": true,
       "showWindows": true,
       "showWindowsOnSpecialWorkspaces": true,
       "activeTrail": false,
@@ -153,13 +153,13 @@
     },
     "tray": {
       "background": false,
-      "recolour": false,
+      "recolour": true,
       "compact": false,
       "iconSubs": []
     },
     "status": {
-      "showAudio": false,
-      "showMicrophone": false,
+      "showAudio": true,
+      "showMicrophone": true,
       "showKbLayout": false,
       "showNetwork": true,
       "showWifi": true,
@@ -265,7 +265,12 @@
     "enableDangerousActions": false,
     "dragThreshold": 50,
     "vimKeybinds": false,
-    "favouriteApps": [],
+    "favouriteApps": [
+      "code",
+      "firefox",
+      "notion",
+      "thunar"
+    ],
     "hiddenApps": [],
     "useFuzzy": {
       "apps": true,
