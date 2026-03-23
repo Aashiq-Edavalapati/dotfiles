@@ -609,30 +609,45 @@ class ClipboardApp(Gtk.Application):
     def _on_row_gesture(self, gesture, n_press, x, y, item: str):
         if n_press != 1:
             return
+
         gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-        self.win.close()
 
         def _do():
             try:
+                # Decode clipboard item
                 decoded = subprocess.run(
                     ["cliphist", "decode"],
-                    input=item, text=True,
-                    capture_output=True, timeout=5,
+                    input=item,
+                    text=True,
+                    capture_output=True,
+                    timeout=5,
                 )
+
+                # Copy to clipboard
                 subprocess.run(
                     ["wl-copy", "--"],
-                    input=decoded.stdout, text=True, timeout=5,
+                    input=decoded.stdout,
+                    text=True,
+                    timeout=5,
                 )
-                # Wait for focus to return to the target window after ours closes
-                time.sleep(0.05)
+
+                # Give Wayland time to register clipboard owner
+                time.sleep(0.08)
+
+                # Paste into previous window
                 subprocess.run(
                     ["wtype", "-M", "ctrl", "v", "-m", "ctrl"],
                     timeout=3,
                 )
-            except FileNotFoundError:
-                pass  # wtype not installed; clipboard is set, paste manually
+
+                # Small delay so paste finishes cleanly
+                time.sleep(0.03)
+
             except Exception as e:
                 print(f"[clipboard] copy/paste error: {e}", file=sys.stderr)
+
+            # 🔥 CLOSE AFTER EVERYTHING
+            GLib.idle_add(self.win.close)
 
         threading.Thread(target=_do, daemon=True).start()
 
