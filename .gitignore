@@ -9,9 +9,16 @@ blob_storage/
 Code/
 Notion/
 Docker Desktop/
+teams-for-linux/
+Postman/
+Antigravity/
+discord/
+pgadmin4/
+nwg-*/
 
 # Browsers
 mozilla/
+google-chrome
 
 # Office
 libreoffice/
@@ -34,6 +41,7 @@ Singleton*
 
 # Package files
 *.pkg.tar.zst
+yay
 
 # Agent
 cagent/
